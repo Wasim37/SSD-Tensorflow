@@ -25,7 +25,8 @@ python tf_convert_data.py \
 ```
 """
 import tensorflow as tf
-
+import os
+root=os.getcwd()+os.sep
 from datasets import pascalvoc_to_tfrecords
 
 FLAGS = tf.app.flags.FLAGS
@@ -34,13 +35,13 @@ tf.app.flags.DEFINE_string(
     'dataset_name', 'pascalvoc',
     'The name of the dataset to convert.')
 tf.app.flags.DEFINE_string(
-    'dataset_dir', None,
+    'dataset_dir', root+'LikeVOC2007'+os.sep+'VOC2007'+os.sep,
     'Directory where the original dataset is stored.')
 tf.app.flags.DEFINE_string(
-    'output_name', 'pascalvoc',
+    'output_name', 'voc_2007_train',
     'Basename used for TFRecords output files.')
 tf.app.flags.DEFINE_string(
-    'output_dir', './',
+    'output_dir',  root+'LikeVOC2007'+os.sep+'VOC2007_tfrecord'+os.sep,
     'Output directory where to store TFRecords files.')
 
 

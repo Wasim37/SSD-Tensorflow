@@ -22,9 +22,15 @@ from nets import nets_factory
 from preprocessing import preprocessing_factory
 import tf_utils
 
+import os
+root=os.getcwd()+os.sep
+
 slim = tf.contrib.slim
 
-DATA_FORMAT = 'NCHW'
+#NHWC" 時，排列順序為 [batch, height, width, channels]
+#NCHW" 時，排列順序為 [batch, channels, height, width]。
+#DATA_FORMAT = 'NCHW'
+DATA_FORMAT = 'NHWC'
 
 # =========================================================================== #
 # SSD Network flags.
@@ -40,7 +46,7 @@ tf.app.flags.DEFINE_float(
 # General Flags.
 # =========================================================================== #
 tf.app.flags.DEFINE_string(
-    'train_dir', '/tmp/tfmodel/',
+    'train_dir', root+'tfmodel'+os.sep,
     'Directory where checkpoints and event logs are written to.')
 tf.app.flags.DEFINE_integer('num_clones', 1,
                             'Number of model clones to deploy.')
@@ -130,13 +136,13 @@ tf.app.flags.DEFINE_float(
 # Dataset Flags.
 # =========================================================================== #
 tf.app.flags.DEFINE_string(
-    'dataset_name', 'imagenet', 'The name of the dataset to load.')
+    'dataset_name', 'pascalvoc_2007', 'The name of the dataset to load.')
 tf.app.flags.DEFINE_integer(
     'num_classes', 21, 'Number of classes to use in the dataset.')
 tf.app.flags.DEFINE_string(
     'dataset_split_name', 'train', 'The name of the train/test split.')
 tf.app.flags.DEFINE_string(
-    'dataset_dir', None, 'The directory where the dataset files are stored.')
+    'dataset_dir', root+'LikeVOC2007'+os.sep+'VOC2007_tfrecord', 'The directory where the dataset files are stored.')
 tf.app.flags.DEFINE_integer(
     'labels_offset', 0,
     'An offset for the labels in the dataset. This flag is primarily used to '
@@ -148,17 +154,17 @@ tf.app.flags.DEFINE_string(
     'preprocessing_name', None, 'The name of the preprocessing to use. If left '
     'as `None`, then the model_name flag is used.')
 tf.app.flags.DEFINE_integer(
-    'batch_size', 32, 'The number of samples in each batch.')
+    'batch_size', 2, 'The number of samples in each batch.') #原值32
 tf.app.flags.DEFINE_integer(
     'train_image_size', None, 'Train image size')
-tf.app.flags.DEFINE_integer('max_number_of_steps', None,
+tf.app.flags.DEFINE_integer('max_number_of_steps', 50000,
                             'The maximum number of training steps.')
 
 # =========================================================================== #
 # Fine-Tuning Flags.
 # =========================================================================== #
 tf.app.flags.DEFINE_string(
-    'checkpoint_path', None,
+    'checkpoint_path',  root+'checkpoints'+os.sep+'ssd_300_vgg.ckpt'+os.sep+'ssd_300_vgg.ckpt',
     'The path to a checkpoint from which to fine-tune.')
 tf.app.flags.DEFINE_string(
     'checkpoint_model_scope', None,
