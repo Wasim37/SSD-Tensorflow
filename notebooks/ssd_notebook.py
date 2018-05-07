@@ -21,9 +21,9 @@ from notebooks import visualization
 path=os.getcwd()
 path=os.path.dirname(path)
 
-# tensorflow在训练时会默认占用所有GPU的内存
-# 可以通过 per_process_gpu_memory_fraction 选项设置每个GPU在进程中使用内存的上限
-# 也可以通过 allow_growth=True，让所分配的内存根据需求增长
+# tensorflow在训练时会默认占用所有GPU的显存
+# 可以通过 per_process_gpu_memory_fraction 选项设置每个GPU在进程中使用显存的上限
+# 也可以通过 allow_growth=True，让所分配的显存根据需求增长
 gpu_options = tf.GPUOptions(allow_growth=True)
 config = tf.ConfigProto(log_device_placement=False, gpu_options=gpu_options)
 isess = tf.InteractiveSession(config=config)
@@ -92,8 +92,18 @@ def process_image(img, select_threshold=0.5, nms_threshold=.45, net_shape=(300, 
 path = '../demo/'
 image_names = sorted(os.listdir(path))
 
-img = mpimg.imread(path + image_names[-1])
+img = mpimg.imread(path + image_names[-5])
 rclasses, rscores, rbboxes =  process_image(img)
+
+# demo目录下倒数第五张图（小轿车、自行车、狗）的输出结果如下
+# rclasses
+# array([ 2,  7, 12], dtype=int64)
+# rscores
+# array([0.99041396, 0.96858996, 0.9560676 ], dtype=float32)
+# rbboxes
+# array([[0.19294187, 0.18716487, 0.824463  , 0.7296326 ],
+       #[0.14599293, 0.6084448 , 0.29842302, 0.9021337 ],
+       #[0.38435042, 0.17588624, 0.93412066, 0.41257903]], dtype=float32)
 
 # visualization.bboxes_draw_on_img(img, rclasses, rscores, rbboxes, visualization.colors_plasma)
 visualization.plt_bboxes(img, rclasses, rscores, rbboxes)
