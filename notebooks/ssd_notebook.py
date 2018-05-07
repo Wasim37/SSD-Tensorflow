@@ -29,7 +29,10 @@ config = tf.ConfigProto(log_device_placement=False, gpu_options=gpu_options)
 isess = tf.InteractiveSession(config=config)
 
 
-# Input placeholder.
+# SSD 300 网络需要300x300的图像输入。对于任意尺寸大小的输入，网络都会将其调整为300x300（即Resize.WARP_RESIZE）。
+# 尽管调整大小可能会更改比率宽度/高度，但SSD模型在调整后的图像上表现良好。
+# SSD anchors correspond to the default bounding boxes encoded in the network. The SSD net output provides offset on the coordinates and dimensions of these anchors. 
+# SSD锚点对应于网络中编码的默认边界框。SSD净输出提供这些锚的坐标和尺寸的偏移量。
 net_shape = (300, 300)
 #NHWC" 時，排列順序為 [batch, height, width, channels]
 #NCHW" 時，排列順序為 [batch, channels, height, width]
@@ -57,6 +60,14 @@ saver.restore(isess, ckpt_filename)
 # SSD default anchor boxes.
 ssd_anchors = ssd_net.anchors(net_shape)
 
+
+# =========================================================================== #
+# SSD网络为了提供更准确的检测结果，需要做一些后期处理，通常步骤如下：
+# 1. Select boxes above a classification threshold;
+# 2. Clip boxes to the image shape;
+# 3. Apply the Non-Maximum-Selection algorithm: fuse together boxes whose Jaccard score > threshold;
+# 4. If necessary, resize bounding boxes to original image shape.    
+# =========================================================================== #
 
 # Main image processing routine.
 def process_image(img, select_threshold=0.5, nms_threshold=.45, net_shape=(300, 300)):
