@@ -6,6 +6,9 @@ import numpy as np
 import tensorflow as tf
 import cv2
 
+# slim主要目的是来做所谓的“代码瘦身”，github上面大部分tensorflow的工程都会涉及到它
+# 撇开Keras，TensorLayer，tfLearn这些个高级库不谈，光用tensorflow能不能写出简洁的代码？可以，用slim即可
+# slim 简介：https://github.com/tensorflow/tensorflow/tree/master/tensorflow/contrib/slim
 slim = tf.contrib.slim
 
 #%matplotlib inline

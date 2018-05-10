@@ -59,8 +59,8 @@ from datasets.dataset_utils import int64_feature, float_feature, bytes_feature
 from datasets.pascalvoc_common import VOC_LABELS
 
 # Original dataset organisation.
-DIRECTORY_ANNOTATIONS = 'Annotations/'
-DIRECTORY_IMAGES = 'JPEGImages/'
+DIRECTORY_ANNOTATIONS = 'Annotations'+os.sep
+DIRECTORY_IMAGES = 'JPEGImages'+os.sep
 
 # TFRecords convertion parameters.
 RANDOM_SEED = 4242

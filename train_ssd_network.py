@@ -138,7 +138,7 @@ tf.app.flags.DEFINE_float(
 tf.app.flags.DEFINE_string(
     'dataset_name', 'pascalvoc_2007', 'The name of the dataset to load.')
 tf.app.flags.DEFINE_integer(
-    'num_classes', 21, 'Number of classes to use in the dataset.')
+    'num_classes', 21, 'Number of classes to use in the dataset.') # 原数据集共有21个类别，如果换成自己的数据集，需要更改类别种类参数
 tf.app.flags.DEFINE_string(
     'dataset_split_name', 'train', 'The name of the train/test split.')
 tf.app.flags.DEFINE_string(
@@ -154,7 +154,7 @@ tf.app.flags.DEFINE_string(
     'preprocessing_name', None, 'The name of the preprocessing to use. If left '
     'as `None`, then the model_name flag is used.')
 tf.app.flags.DEFINE_integer(
-    'batch_size', 2, 'The number of samples in each batch.') #原值32
+    'batch_size', 2, 'The number of samples in each batch.')  #原值32，调试时因为内存不够，改为2
 tf.app.flags.DEFINE_integer(
     'train_image_size', None, 'Train image size')
 tf.app.flags.DEFINE_integer('max_number_of_steps', 50000,
@@ -195,28 +195,36 @@ def main(_):
     with tf.Graph().as_default():
         # Config model_deploy. Keep TF Slim Models structure.
         # Useful if want to need multiple GPUs and/or servers in the future.
+        # 调用模型配置文件，初始化参数
         deploy_config = model_deploy.DeploymentConfig(
             num_clones=FLAGS.num_clones,
             clone_on_cpu=FLAGS.clone_on_cpu,
             replica_id=0,
             num_replicas=1,
             num_ps_tasks=0)
+        
         # Create global_step.
         with tf.device(deploy_config.variables_device()):
             global_step = slim.create_global_step()
 
         # Select the dataset.
+        # 数据集 pascalvoc_2007 对应的tfrecord文件默认格式为 voc_2007_%s_*.tfrecord
+        # 如果你事先生成的tfrecord名称格式不对应，可以通过参数 file_pattern 进行覆盖
         dataset = dataset_factory.get_dataset(
             FLAGS.dataset_name, FLAGS.dataset_split_name, FLAGS.dataset_dir)
 
         # Get the SSD network and its anchors.
+        # 根据 model_name 初始化模型类，默认模型为 ssd_300_vgg，可以更改模型类型进行微调
         ssd_class = nets_factory.get_network(FLAGS.model_name)
+        # 根据类的 default_params 属性替换默认值，并返回最新的参数集
         ssd_params = ssd_class.default_params._replace(num_classes=FLAGS.num_classes)
         ssd_net = ssd_class(ssd_params)
+        # 根据 ssd_vgg_300 默认的 shape 获取 anchors
         ssd_shape = ssd_net.params.img_shape
         ssd_anchors = ssd_net.anchors(ssd_shape)
 
         # Select the preprocessing function.
+        # 如果不指定自定义预处理，会调用所选模型自带的预处理
         preprocessing_name = FLAGS.preprocessing_name or FLAGS.model_name
         image_preprocessing_fn = preprocessing_factory.get_preprocessing(
             preprocessing_name, is_training=True)
@@ -270,6 +278,7 @@ def main(_):
             """Allows data parallelism by creating multiple
             clones of network_fn."""
             # Dequeue batch.
+            # 批次的图片、类别、位置与置信度
             b_image, b_gclasses, b_glocalisations, b_gscores = \
                 tf_utils.reshape_list(batch_queue.dequeue(), batch_shape)
 

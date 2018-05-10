@@ -91,14 +91,19 @@ class SSDNet(object):
       conv11 ==> 1 x 1
     The default image size used to train this network is 300x300.
     """
+    
+    # SSDParams相当于类变量，所有实例化SSDNet这个类的，都会共享这个参数，因此没直接写在__init__方法中
     default_params = SSDParams(
-        img_shape=(300, 300),
-        num_classes=21,
+        img_shape=(300, 300), 
+        num_classes=21, # 默认需要检测的类型数量
         no_annotation_label=21,
+        # SSD模型是以VGG为基础构建的模型，一共11层，用来分类的层共6层，分别为第4/7/8/9/7/10/11层
         feat_layers=['block4', 'block7', 'block8', 'block9', 'block10', 'block11'],
+        # 每层对应的特征图大小
         feat_shapes=[(38, 38), (19, 19), (10, 10), (5, 5), (3, 3), (1, 1)],
         anchor_size_bounds=[0.15, 0.90],
         # anchor_size_bounds=[0.20, 0.90],
+        # SSD采用多特征图进行检测，大特征图检测较小目标，小特征图检测大目标，所以每层对应的anchor尺寸逐级递增
         anchor_sizes=[(21., 45.),
                       (45., 99.),
                       (99., 153.),
