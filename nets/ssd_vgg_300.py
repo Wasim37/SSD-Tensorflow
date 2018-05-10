@@ -374,6 +374,7 @@ def ssd_anchors_all_layers(img_shape,
     """
     layers_anchors = []
     for i, s in enumerate(layers_shape):
+        # 为SSD的每一个特征层计算默认的先验框 anchor boxes
         anchor_bboxes = ssd_anchor_one_layer(img_shape, s,
                                              anchor_sizes[i],
                                              anchor_ratios[i],

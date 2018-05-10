@@ -193,6 +193,7 @@ def main(_):
 
     tf.logging.set_verbosity(tf.logging.DEBUG)
     with tf.Graph().as_default():
+        
         # Config model_deploy. Keep TF Slim Models structure.
         # Useful if want to need multiple GPUs and/or servers in the future.
         # 调用模型配置文件，初始化参数
@@ -219,18 +220,22 @@ def main(_):
         # 根据类的 default_params 属性替换默认值，并返回最新的参数集
         ssd_params = ssd_class.default_params._replace(num_classes=FLAGS.num_classes)
         ssd_net = ssd_class(ssd_params)
-        # 根据 ssd_vgg_300 默认的 shape 获取 anchors
+        # 根据 ssd_vgg_300 默认的 shape 获取对应的先验框
         ssd_shape = ssd_net.params.img_shape
+        # SSD300 一共预测 38*38*4 + 19*19*6 + 10*10*6 + 5*5*6 + 3*3*4 + 1*1*4 = 8732 个边界框
         ssd_anchors = ssd_net.anchors(ssd_shape)
 
         # Select the preprocessing function.
         # 如果不指定自定义预处理，会调用所选模型自带的预处理
         preprocessing_name = FLAGS.preprocessing_name or FLAGS.model_name
+        # 此处写法很有意思，返回的只是函数名，没有调用预处理的逻辑，后面会用到
         image_preprocessing_fn = preprocessing_factory.get_preprocessing(
             preprocessing_name, is_training=True)
 
+        # 打印当前配置，看是否存在异常
         tf_utils.print_configuration(FLAGS.__flags, ssd_params,
                                      dataset.data_sources, FLAGS.train_dir)
+        
         # =================================================================== #
         # Create a dataset provider and batches.
         # =================================================================== #
@@ -251,7 +256,11 @@ def main(_):
                 image_preprocessing_fn(image, glabels, gbboxes,
                                        out_shape=ssd_shape,
                                        data_format=DATA_FORMAT)
-            # Encode groundtruth labels and bboxes.
+            
+            # Encode groundtruth labels and bboxes. 编码真实目标的labels and bboxes
+            # gclasses (38, 38, 4) (19, 19, 6) (10, 10, 6) (5, 5, 6) (3, 3, 4) (1, 1, 4)
+            # glocalisations (38, 38, 4, 4) (19, 19, 6, 4) (10, 10, 6, 4) (5, 5, 6, 4) (3, 3, 4, 4) (1, 1, 4, 4)
+            # gscores  (38, 38, 4)  (19, 19, 6) (10, 10, 6) (5, 5, 6) (3, 3, 4) (1, 1, 4) 
             gclasses, glocalisations, gscores = \
                 ssd_net.bboxes_encode(glabels, gbboxes, ssd_anchors)
             batch_shape = [1] + [len(ssd_anchors)] * 3
